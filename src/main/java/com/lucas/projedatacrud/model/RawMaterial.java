@@ -9,11 +9,11 @@ import lombok.Data;
 public class RawMaterial {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
 
     @Column(nullable = false)
     private String name;
 
     @Column(nullable = false)
-    private int quantity;
+    private Integer quantity;
 }

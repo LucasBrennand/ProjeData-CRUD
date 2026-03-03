@@ -2,6 +2,8 @@ package com.lucas.projedatacrud.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
+
 import java.util.List;
 
 @Entity
@@ -18,6 +20,7 @@ public class Product {
     @Column(nullable = false)
     private Double price;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ToString.Exclude
     private List<ProductMaterial> materials;
 }
