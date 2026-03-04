@@ -5,15 +5,30 @@ import RawMaterialsList from "./RawMaterialsList";
 interface Props {
   materials: RawMaterial[];
   onOpenModal: () => void;
+  onEdit: (material: RawMaterial) => void;
+  onSearch: (value: string) => void;
   onRefresh: () => void;
 }
 
-function RawMaterials({ materials, onOpenModal, onRefresh }: Props) {
+function RawMaterials({
+  materials,
+  onOpenModal,
+  onEdit,
+  onSearch,
+  onRefresh,
+}: Props) {
   return (
-    <section className="w-[95%] max-w-5xl mt-8 p-6 bg-white flex flex-col gap-6 rounded-lg shadow-lg border border-gray-200">
-      <RawMaterialsHeader onOpenModal={onOpenModal} />
-      <RawMaterialsList materials={materials} onRefresh={onRefresh} />
+    <section className="w-full max-w-[95%] lg:max-w-6xl mx-auto mt-6 md:mt-10 p-4 md:p-8 bg-white/60 backdrop-blur-lg rounded-3xl shadow-2xl shadow-gray-200/50 border border-white/40 transition-all">
+      <RawMaterialsHeader onOpenModal={onOpenModal} onSearch={onSearch} />
+      <div className="mt-6">
+        <RawMaterialsList
+          materials={materials}
+          onEdit={onEdit}
+          onRefresh={onRefresh}
+        />
+      </div>
     </section>
   );
 }
+
 export default RawMaterials;
