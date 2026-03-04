@@ -4,6 +4,8 @@ import type { RawMaterial, Product, ProductionSuggestion } from './types';
 import { Modal } from './components/Common/Modal';
 import { ProductDetailModal } from './components/Modals/ProductDetailModal';
 import Header from './components/Common/Header';
+import Footer from './components/Common/Footer';
+import RawMaterials from './components/Dashboard/RawMaterials/RawMaterials';
 
 function App() {
   const [materials, setMaterials] = useState<RawMaterial[]>([]);
@@ -57,9 +59,11 @@ function App() {
   return (
     <>
     <Header/>
-    <main>
+    <main className='place-items-center p-1 outline-1 outline-black'>
+      <RawMaterials/>
 
     </main>
+    <Footer/>
     </>
   );
 }
