@@ -8,7 +8,6 @@ function RawMaterialsHeader({ onOpenModal, onSearch }: Props) {
     <div className="flex flex-col md:flex-row justify-between items-center gap-4">
       <div className="flex flex-col">
         <h2 className="text-2xl font-bold text-gray-800">Raw Materials</h2>
-        <p className="text-sm text-gray-500">Inventory and availability</p>
       </div>
       <div className="flex items-center gap-3 w-full md:w-auto">
         <div className="relative grow">
