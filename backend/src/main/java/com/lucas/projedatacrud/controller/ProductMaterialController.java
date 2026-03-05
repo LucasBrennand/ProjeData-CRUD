@@ -17,4 +17,9 @@ public class ProductMaterialController {
     public ProductMaterial addIngredient(@RequestBody ProductMaterial association) {
         return repository.save(association);
     }
+
+    @DeleteMapping("/{id}")
+    public void removeIngredient(@PathVariable Integer id) {
+        repository.deleteById(id);
+    }
 }

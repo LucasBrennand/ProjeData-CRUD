@@ -6,6 +6,7 @@ import com.lucas.projedatacrud.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -29,9 +30,6 @@ public class ProductionService {
         List<ProductionSuggestionDTO> suggestions = new ArrayList<>();
 
         for (Product product : products) {
-            System.out.println("--- Verificando Produto: " + product.getName() + " ---");
-            System.out.println("Quantidade de materiais vinculados: " +
-                    (product.getMaterials() != null ? product.getMaterials().size() : "NULO"));
             if (product.getMaterials() == null || product.getMaterials().isEmpty()) {
                 continue;
             }
@@ -64,5 +62,34 @@ public class ProductionService {
             }
         }
         return suggestions;
+    }
+
+    @Transactional
+    public Product executeProduction(Integer productId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        if (product.getMaterials() == null || product.getMaterials().isEmpty()) {
+            throw new RuntimeException("Cannot produce: No recipe defined");
+        }
+
+        // Validate stock
+        for (ProductMaterial pm : product.getMaterials()) {
+            RawMaterial rm = pm.getRawMaterial();
+            if (rm.getQuantity() < pm.getRequiredQuantity()) {
+                throw new RuntimeException("Insufficient stock for: " + rm.getName());
+            }
+        }
+
+        // Consume materials
+        for (ProductMaterial pm : product.getMaterials()) {
+            RawMaterial rm = pm.getRawMaterial();
+            rm.setQuantity(rm.getQuantity() - pm.getRequiredQuantity());
+            rawMaterialRepository.save(rm);
+        }
+
+        // Increment product quantity
+        product.setQuantity(product.getQuantity() + 1);
+        return productRepository.save(product);
     }
 }

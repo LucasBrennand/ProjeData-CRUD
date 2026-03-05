@@ -20,7 +20,10 @@ public class Product {
     @Column(nullable = false)
     private Double price;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @Column(nullable = false, columnDefinition = "integer default 0")
+    private Integer quantity = 0;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     @ToString.Exclude
     private List<ProductMaterial> materials;
 }

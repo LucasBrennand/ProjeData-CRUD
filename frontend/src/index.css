@@ -5,6 +5,11 @@
   --font-tinos: "Tinos", serif;  
 }
 
+html {
+  /* Prevents the page from shifting when scrollbar disappears/reappears */
+  scrollbar-gutter: stable;
+}
+
 @layer utilities {
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;

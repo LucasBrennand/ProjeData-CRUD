@@ -28,7 +28,6 @@ function App() {
   const [newMaterial, setNewMaterial] = useState({ name: '', quantity: 0 });
   const [newProduct, setNewProduct] = useState({ name: '', price: 0, quantity: 0 });
   
-  // New Product Ingredients State
   const [tempIngredients, setTempIngredients] = useState<TempIngredient[]>([]);
   const [selectedMatId, setSelectedMatId] = useState<number>(0);
   const [ingredientQty, setIngredientQty] = useState<string>('');
@@ -118,11 +117,9 @@ function App() {
     if (!newProduct.name || newProduct.price < 0) return;
     
     try {
-      // 1. Create Product
       const prodRes = await api.post<Product>('/products', newProduct);
       const createdProdId = prodRes.data.id;
 
-      // 2. Link Ingredients
       if (tempIngredients.length > 0) {
         await Promise.all(tempIngredients.map(ti => 
           api.post('/product-ingredients', {
@@ -144,31 +141,13 @@ function App() {
   };
 
   const handleProduceProduct = async (product: Product) => {
-    if (!product.materials || product.materials.length === 0) {
-      triggerError("Cannot produce: This product has no recipe!");
-      return;
-    }
-
-    const insufficient = product.materials.filter(pm => {
-      const stock = materials.find(m => m.id === pm.rawMaterial.id)?.quantity || 0;
-      return stock < pm.requiredQuantity;
-    });
-
-    if (insufficient.length > 0) {
-      const names = insufficient.map(i => i.rawMaterial.name).join(', ');
-      triggerError(`Insufficient materials: ${names}`);
-      return;
-    }
-
     try {
-      await api.put(`/products/${product.id}`, {
-        ...product,
-        quantity: product.quantity + 1
-      });
+      await api.post(`/production/produce/${product.id}`);
       fetchData();
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      triggerError("Production failed.");
+      const msg = error.response?.data?.message || "Production failed.";
+      triggerError(msg);
     }
   };
 
@@ -177,8 +156,10 @@ function App() {
     try {
       await api.delete(`/products/${id}`);
       fetchData();
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      console.error("Erro ao deletar produto:", error);
+      const msg = error.response?.data?.message || "Erro ao deletar produto.";
+      triggerError(msg);
     }
   };
 
@@ -191,7 +172,7 @@ function App() {
   );
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 to-blue-50/30 text-gray-900 font-sans pb-20 overflow-x-hidden">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 to-blue-50/30 text-gray-900 font-sans overflow-x-hidden">
       <Header />
 
       {errorMsg && (
@@ -237,12 +218,12 @@ function App() {
             <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
               <input 
                 type="text" placeholder="Search products..." 
-                className="w-full border border-gray-200/60 rounded-2xl px-5 py-3 text-sm bg-white/50 focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 outline-none"
+                className="w-full border border-gray-200/60 rounded-2xl px-5 py-3 text-sm bg-white/50 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none"
                 value={searchProduct} onChange={e => setSearchProduct(e.target.value)}
               />
               <button 
                 onClick={() => { setNewProduct({name: '', price: 0, quantity: 0}); setTempIngredients([]); setIsProdModalOpen(true); }}
-                className="bg-purple-600 text-white px-8 py-3 rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-purple-700 active:scale-95 whitespace-nowrap"
+                className="bg-blue-600 text-white px-8 py-3 rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-blue-700 active:scale-95 whitespace-nowrap"
               >
                 + New Product
               </button>
@@ -251,14 +232,14 @@ function App() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
             {filteredProducts.map(p => (
-              <div key={p.id} className="group border border-white/60 p-6 rounded-[2rem] flex flex-col gap-5 hover:border-purple-300 hover:shadow-2xl transition-all bg-white/40 backdrop-blur-sm relative overflow-hidden">
-                <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+              <div key={p.id} className="group border border-white/60 p-6 rounded-[2rem] flex flex-col gap-5 hover:border-blue-300 hover:shadow-2xl transition-all bg-white/40 backdrop-blur-sm relative overflow-hidden">
+                <div className="absolute top-3 right-3 group-hover:opacity-100 transition-opacity z-10">
                    <button onClick={() => p.id && handleDeleteProduct(p.id)} className="p-2.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl bg-white/80 border border-gray-100">🗑</button>
                 </div>
                 <div className="space-y-1">
-                  <p className="font-black text-xl text-gray-800 group-hover:text-purple-700 transition-colors truncate pr-8">{p.name}</p>
+                  <p className="font-black text-xl text-gray-800 group-hover:text-blue-700 transition-colors truncate pr-8">{p.name}</p>
                   <div className="flex justify-between items-end">
-                    <p className="text-purple-600 font-black text-2xl tracking-tighter">R$ {p.price.toFixed(2)}</p>
+                    <p className="text-blue-600 font-black text-2xl tracking-tighter">R$ {p.price.toFixed(2)}</p>
                     <div className="flex flex-col items-end">
                       <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">In Stock</span>
                       <span className="text-lg font-black text-gray-800 leading-none">{p.quantity} <span className="text-[10px] font-medium text-gray-400">units</span></span>
@@ -267,7 +248,7 @@ function App() {
                 </div>
                 <div className="grid grid-cols-2 gap-3 mt-auto pt-5 border-t border-gray-200/30">
                    <button onClick={() => handleProduceProduct(p)} className="bg-blue-600 text-white px-4 py-3 rounded-2xl text-xs font-black hover:bg-blue-700 active:scale-95 uppercase tracking-widest">Produce</button>
-                   <button onClick={() => { setSelectedProduct(p); setIsProdDetailOpen(true); }} className="bg-white/90 border border-gray-200 px-4 py-3 rounded-2xl text-xs font-black text-gray-700 hover:bg-purple-600 hover:text-white active:scale-95 uppercase tracking-widest">Recipe</button>
+                   <button onClick={() => { setSelectedProduct(p); setIsProdDetailOpen(true); }} className="bg-white/90 border border-gray-200 px-4 py-3 rounded-2xl text-xs font-black text-gray-700 hover:bg-blue-600 hover:text-white active:scale-95 uppercase tracking-widest">Recipe</button>
                 </div>
               </div>
             ))}
@@ -283,47 +264,47 @@ function App() {
             <div className="space-y-1">
               <label className="text-xs font-black text-gray-400 uppercase ml-1 tracking-widest">Product Name</label>
               <input 
-                type="text" placeholder="e.g. Steel Plate" className="w-full border border-gray-200 px-5 py-4 rounded-2xl outline-none focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 bg-white/50 shadow-sm" required
+                type="text" placeholder="e.g. Steel Plate" className="w-full border border-gray-200 px-5 py-4 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 bg-white/50 shadow-sm" required
                 value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})}
               />
             </div>
             <div className="space-y-1">
               <label className="text-xs font-black text-gray-400 uppercase ml-1 tracking-widest">Price (R$)</label>
               <input 
-                type="number" step="0.01" className="w-full border border-gray-200 px-5 py-4 rounded-2xl outline-none focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 bg-white/50 shadow-sm" required
+                type="number" step="0.01" className="w-full border border-gray-200 px-5 py-4 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 bg-white/50 shadow-sm" required
                 value={newProduct.price || ''} onChange={e => setNewProduct({...newProduct, price: Number(e.target.value)})}
               />
             </div>
           </div>
 
           {/* Recipe Section */}
-          <div className="bg-purple-50/50 p-6 rounded-3xl border border-purple-100">
-            <h4 className="text-xs font-black text-purple-600 uppercase mb-4 tracking-widest">Define Recipe</h4>
+          <div className="bg-blue-50/50 p-6 rounded-3xl border border-blue-100">
+            <h4 className="text-xs font-black text-blue-600 uppercase mb-4 tracking-widest">Define Recipe</h4>
             <div className="grid grid-cols-1 sm:grid-cols-[1fr,auto,auto] gap-3 mb-4">
               <select 
-                className="border border-gray-200 px-4 py-3 rounded-xl text-sm bg-white outline-none focus:ring-2 focus:ring-purple-500"
+                className="border border-gray-200 px-4 py-3 rounded-xl text-sm bg-white outline-none focus:ring-2 focus:ring-blue-500"
                 value={selectedMatId} onChange={(e) => setSelectedMatId(Number(e.target.value))}
               >
                 <option value="0">Select material...</option>
                 {materials.map(m => <option key={m.id} value={m.id}>{m.name} (In stock: {m.quantity})</option>)}
               </select>
               <input 
-                type="number" placeholder="Qty" className="border border-gray-200 px-4 py-3 rounded-xl text-sm bg-white w-24 outline-none focus:ring-2 focus:ring-purple-500"
+                type="number" placeholder="Qty" className="border border-gray-200 px-4 py-3 rounded-xl text-sm bg-white w-24 outline-none focus:ring-2 focus:ring-blue-500"
                 value={ingredientQty} onChange={(e) => setIngredientQty(e.target.value)}
               />
               <button 
                 type="button" onClick={handleAddTempIngredient}
-                className="bg-purple-600 text-white px-4 py-3 rounded-xl text-xs font-bold hover:bg-purple-700 active:scale-95"
+                className="bg-blue-600 text-white px-4 py-3 rounded-xl text-xs font-bold hover:bg-blue-700 active:scale-95"
               >Add</button>
             </div>
 
             {/* Temp Ingredients List */}
             <div className="space-y-2 max-h-40 overflow-y-auto custom-scrollbar pr-2">
               {tempIngredients.map(ti => (
-                <div key={ti.rawMaterialId} className="flex justify-between items-center bg-white p-3 rounded-xl shadow-sm border border-purple-100">
+                <div key={ti.rawMaterialId} className="flex justify-between items-center bg-white p-3 rounded-xl shadow-sm border border-blue-100">
                   <div className="flex flex-col">
                     <span className="font-bold text-gray-700 text-sm">{ti.name}</span>
-                    <span className="text-xs text-purple-500 font-medium">{ti.requiredQuantity} units</span>
+                    <span className="text-xs text-blue-500 font-medium">{ti.requiredQuantity} units</span>
                   </div>
                   <button type="button" onClick={() => handleRemoveTempIngredient(ti.rawMaterialId)} className="text-red-400 hover:text-red-600 p-1">🗑</button>
                 </div>
@@ -332,7 +313,7 @@ function App() {
             </div>
           </div>
 
-          <button type="submit" className="w-full bg-purple-600 text-white p-5 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-purple-700 shadow-xl shadow-purple-100 active:scale-[0.98]">
+          <button type="submit" className="w-full bg-blue-600 text-white p-5 rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-blue-700 shadow-xl shadow-blue-100 active:scale-[0.98]">
             Create Product with Recipe
           </button>
         </form>
@@ -341,7 +322,7 @@ function App() {
       <Modal isOpen={isMatModalOpen} onClose={() => setIsMatModalOpen(false)} title={editingMaterial ? "Edit Material" : "Add Material"}>
         <form onSubmit={handleSaveMaterial} className="flex flex-col gap-6 p-1">
           <input type="text" placeholder="Material Name" className="w-full border p-4 rounded-2xl bg-white/50" required value={newMaterial.name} onChange={e => setNewMaterial({...newMaterial, name: e.target.value})} />
-          <input type="number" placeholder="Stock" className="w-full border p-4 rounded-2xl bg-white/50" required value={newMaterial.quantity} onChange={e => setNewMaterial({...newMaterial, quantity: Number(e.target.value)})} />
+          <input type="number" placeholder="Stock" className="w-full border p-4 rounded-2xl bg-white/50" required value={newMaterial.quantity || ''} onChange={e => setNewMaterial({...newMaterial, quantity: Number(e.target.value)})} />
           <button type="submit" className="bg-blue-600 text-white p-5 rounded-2xl font-black uppercase tracking-widest hover:bg-blue-700">Save Material</button>
         </form>
       </Modal>

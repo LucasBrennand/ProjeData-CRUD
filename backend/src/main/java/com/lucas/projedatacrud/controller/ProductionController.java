@@ -1,6 +1,7 @@
 package com.lucas.projedatacrud.controller;
 
 import com.lucas.projedatacrud.dto.ProductionSuggestionDTO;
+import com.lucas.projedatacrud.model.Product;
 import com.lucas.projedatacrud.service.ProductionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -18,5 +19,10 @@ public class ProductionController {
     @GetMapping("/suggested")
     public List<ProductionSuggestionDTO> getSuggestions() {
         return service.calculateSuggestedProduction();
+    }
+
+    @PostMapping("/produce/{productId}")
+    public Product produce(@PathVariable Integer productId) {
+        return service.executeProduction(productId);
     }
 }

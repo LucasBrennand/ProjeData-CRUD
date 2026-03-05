@@ -1,5 +1,6 @@
 package com.lucas.projedatacrud.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -13,6 +14,7 @@ public class ProductMaterial {
 
     @ManyToOne
     @JoinColumn(name = "product_id")
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private Product product;
 
     @ManyToOne

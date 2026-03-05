@@ -20,7 +20,7 @@ function RawMaterialsList({ materials, onRefresh, onEdit }: Props) {
       } catch (error) {
         console.error("Error deleting:", error);
         alert(
-          "Could not delete. Check if the material is being used in any product recipe.",
+          "Error deleting. Check if the material is being used in any product recipe.",
         );
       }
     }
@@ -78,7 +78,7 @@ function RawMaterialsList({ materials, onRefresh, onEdit }: Props) {
           {materials.length === 0 && (
             <tr>
               <td colSpan={4} className="px-6 py-12 text-center text-gray-400 italic">
-                No materials found.
+                No materials found
               </td>
             </tr>
           )}
